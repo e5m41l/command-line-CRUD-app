@@ -1,27 +1,27 @@
-package com.luv2code.cruddemo.DAO;
+package com.mostafaesmail.cruddemo.dao;
 
-import com.luv2code.cruddemo.entity.Student;
+import com.mostafaesmail.cruddemo.entity.Student;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Struct;
+import java.lang.reflect.Type;
 import java.util.List;
 
-@Repository
-public class StudentDAOImpl implements StudentDAO{
 
-    // defining entity manager field
+@Repository
+public class StudentDAOImpl implements StudentDAO {
+
+    // define field for entity manager
     private EntityManager entityManager;
 
-    // injecting the entityManager field using constructor injection
-    @Autowired
+    // inject entity manager
     public StudentDAOImpl(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
 
+    // implement save method
     @Override
     @Transactional
     public void save(Student student) {
@@ -30,33 +30,53 @@ public class StudentDAOImpl implements StudentDAO{
 
     @Override
     public Student findById(int id) {
+        Student student = entityManager.find(Student.class, id);
 
-        return entityManager.find(Student.class, id);
+        return student;
     }
 
     @Override
     public List<Student> findAll() {
-        // create query
-        TypedQuery<Student> theQuery = entityManager.createQuery("FROM Student ORDER BY lastName DESC", Student.class);
+        TypedQuery<Student> query = entityManager.createQuery("FROM Student ORDER BY lastName", Student.class);
 
-        // return query result
-        return theQuery.getResultList();
+        List<Student> students = query.getResultList();
+
+        return students;
     }
 
     @Override
-    public List<Student> findByLastName(String theLastName) {
-        // Create Query
-        TypedQuery<Student> theQuery = entityManager.createQuery("FROM Student WHERE lastName = :param", Student.class);
+    public List<Student> findByLastName(String lastName) {
+        // create query
+        TypedQuery<Student> query = entityManager.createQuery("FROM Student WHERE lastName =:theData", Student.class);
 
-        // Set Parameters
-        theQuery.setParameter("param", theLastName);
-        // Return Result
-        return theQuery.getResultList();
+        // set parameter
+        query.setParameter("theData", lastName);
+
+        // return result
+        return query.getResultList();
     }
 
     @Override
     @Transactional
     public void update(Student student) {
         entityManager.merge(student);
+    }
+
+    @Override
+    @Transactional
+    public void delete(int id) {
+        // get the student
+        Student x = entityManager.find(Student.class, id);
+
+        // delete the student
+        entityManager.remove(x);
+    }
+
+    @Override
+    @Transactional
+    public int deleteAll() {
+        int numOfRows = entityManager.createQuery("DELETE FROM Student").executeUpdate();
+
+        return numOfRows;
     }
 }
